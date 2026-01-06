@@ -4,7 +4,6 @@ from bot import run_bot, trades, CAPITAL, RISK_PCT
 
 app = FastAPI()
 
-# Allow frontend to access backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,12 +18,15 @@ selected_market = "India"
 def home():
     return {"status": "Bot is running", "running": bot_running}
 
-@app.post("/start/{market}")
+# Remove this line:
+# @app.route("/start", methods=["POST"])
+
+@app.post("/start")
 def start(market: str):
     global bot_running, selected_market
     bot_running = True
     selected_market = market
-    run_bot(selected_market)  # run immediately for demo
+    run_bot(selected_market)
     return {"status": f"Bot started for {market}"}
 
 @app.post("/stop")
