@@ -26,14 +26,18 @@ def trading_loop(market):
             "status": "BUY"
         }
         trades.append(trade)
-        time.sleep(5)  # new trade every 5 sec
+        time.sleep(5)
 
 @app.route("/start/<market>", methods=["POST"])
 def start_bot(market):
     global bot_running
     if not bot_running:
         bot_running = True
-        threading.Thread(target=trading_loop, args=(market,), daemon=True).start()
+        threading.Thread(
+            target=trading_loop,
+            args=(market,),
+            daemon=True
+        ).start()
     return jsonify({"status": f"Bot started for {market}"})
 
 
@@ -55,4 +59,4 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=10000)
