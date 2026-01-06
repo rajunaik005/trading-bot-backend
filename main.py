@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from bot import run_bot, trades, CAPITIAL, RISK_PCT
+from bot import run_bot, trades, CAPITAL, RISK_PCT
 
 app = FastAPI()
 
