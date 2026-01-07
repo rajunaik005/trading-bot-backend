@@ -28,7 +28,7 @@ def trading_loop(market):
         trades.append(trade)
         time.sleep(5)
 
-@app.route("/start/<market>", methods=["POST"])
+@app.route("/start/<market>", methods=["GET", "POST"])
 def start_bot(market):
     global bot_running
     if not bot_running:
