@@ -8,16 +8,40 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-bot_running = False
-trades = []
+# ===============================
+# Bot state per market
+# ===============================
+bot_running = {
+    "India": False,
+    "Taiwan": False
+}
+
+# Trades per market
+trades = {
+    "India": [],
+    "Taiwan": []
+}
 
 india_stocks = ["RELIANCE", "TCS", "INFY", "HDFCBANK"]
 taiwan_stocks = ["TSMC", "UMC", "ASE", "MEDIATEK"]
 
+# ===============================
+# Trading loop
+# ===============================
 def trading_loop(market):
     global bot_running, trades
-    while bot_running:
-        stock = random.choice(india_stocks if market == "India" else taiwan_stocks)
+
+    stocks = india_stocks if market == "India" else taiwan_stocks
+
+    while bot_running[market]:
+        stock = random.choice(stocks)
+
+        # prevent duplicate trades per stock
+        existing = {t["symbol"] for t in trades[market]}
+        if stock in existing:
+            time.sleep(5)
+            continue
+
         trade = {
             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "symbol": stock,
@@ -25,32 +49,44 @@ def trading_loop(market):
             "qty": random.randint(1, 10),
             "status": "BUY"
         }
-        trades.append(trade)
+
+        trades[market].append(trade)
         time.sleep(5)
 
+# ===============================
+# API endpoints
+# ===============================
 @app.route("/start/<market>", methods=["GET", "POST"])
 def start_bot(market):
-    global bot_running
-    if not bot_running:
-        bot_running = True
+    if market not in bot_running:
+        return jsonify({"error": "Invalid market"}), 400
+
+    if not bot_running[market]:
+        bot_running[market] = True
         threading.Thread(
             target=trading_loop,
             args=(market,),
             daemon=True
         ).start()
+
     return jsonify({"status": f"Bot started for {market}"})
 
 
-@app.route("/stop", methods=["POST"])
-def stop_bot():
-    global bot_running
-    bot_running = False
-    return jsonify({"status": "Bot stopped"})
+@app.route("/stop/<market>", methods=["POST"])
+def stop_bot(market):
+    if market not in bot_running:
+        return jsonify({"error": "Invalid market"}), 400
+
+    bot_running[market] = False
+    return jsonify({"status": f"Bot stopped for {market}"})
 
 
-@app.route("/trades", methods=["GET"])
-def get_trades():
-    return jsonify(trades)
+@app.route("/trades/<market>", methods=["GET"])
+def get_trades(market):
+    if market not in trades:
+        return jsonify([])
+
+    return jsonify(trades[market])
 
 
 @app.route("/")
