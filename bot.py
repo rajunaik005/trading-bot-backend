@@ -6,7 +6,11 @@ from datetime import datetime
 # ===============================
 # In-memory trade log
 # ===============================
-trades = []
+trades = {
+    "India": [],
+    "Taiwan": []
+}
+
 
 # Bot running flag
 running = False
@@ -85,7 +89,8 @@ def run_bot(market="India"):
                     "qty": qty,
                     "status": "OPEN"
                 }
-                trades.append(trade)
+                trades[market].append(trade)
+                
                 print(f"BUY {symbol} | Qty {qty} | Price {last_price}")
 
         except Exception as e:
